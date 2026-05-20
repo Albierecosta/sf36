@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% block title %}Nova Avaliação{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Nova Avaliação SF-36</h1>
+  <p class="subtitle">Preencha todas as questões abaixo e clique em <strong>Calcular e Salvar</strong>.</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar" id="progressBar" style="width:0%"></div>
+</div>
+<p class="progress-label" id="progressLabel">0 de 36 itens respondidos</p>
+
+<form method="POST" action="{{ url_for('avaliar') }}" id="sf36Form" novalidate>
+
+  <!-- Patient info -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Dados do Paciente</h2>
+    </div>
+    <div class="card-body patient-grid">
+      <div class="field">
+        <label for="patient_name">Nome do Paciente *</label>
+        <input type="text" id="patient_name" name="patient_name" required placeholder="Nome completo">
+      </div>
+      <div class="field">
+        <label for="patient_code">Prontuário / ID</label>
+        <input type="text" id="patient_code" name="patient_code" placeholder="Opcional">
+      </div>
+      <div class="field">
+        <label for="assessment_date">Data da Avaliação</label>
+        <input type="date" id="assessment_date" name="assessment_date" value="{{ today }}">
+      </div>
+      <div class="field field-full">
+        <label for="notes">Observações</label>
+        <textarea id="notes" name="notes" rows="2" placeholder="Opcional"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q1 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>1. Em geral, você diria que sua saúde é:</h2>
+    </div>
+    <div class="card-body">
+      <div class="radio-row">
+        {% for v, label in [(1,'Excelente'),(2,'Muito Boa'),(3,'Boa'),(4,'Ruim'),(5,'Muito Ruim')] %}
+        <label class="radio-card">
+          <input type="radio" name="q1" value="{{ v }}">
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>2. Comparada há um ano atrás, como você classificaria sua saúde em geral agora?</h2>
+    </div>
+    <div class="card-body">
+      <div class="radio-row">
+        {% for v, label in [(1,'Muito Melhor'),(2,'Um Pouco Melhor'),(3,'Quase a Mesma'),(4,'Um Pouco Pior'),(5,'Muito Pior')] %}
+        <label class="radio-card">
+          <input type="radio" name="q2" value="{{ v }}">
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <p class="note">* Não entra no cálculo dos domínios — usada apenas para comparação com o ano anterior.</p>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>3. Atividades físicas do dia a dia</h2>
+      <p>Devido à sua saúde, você teria dificuldade para fazer estas atividades?</p>
+    </div>
+    <div class="card-body table-wrap">
+      <table class="q-table">
+        <thead>
+          <tr>
+            <th>Atividade</th>
+            <th>Sim, dificulta muito</th>
+            <th>Sim, dificulta um pouco</th>
+            <th>Não dificulta de modo algum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set q3_items = [
+            ('a', 'Atividades rigorosas: correr, levantar objetos pesados, esportes árduos.'),
+            ('b', 'Atividades moderadas: mover mesa, aspirar pó, jogar bola, varrer a casa.'),
+            ('c', 'Levantar ou carregar mantimentos.'),
+            ('d', 'Subir vários lances de escada.'),
+            ('e', 'Subir um lance de escada.'),
+            ('f', 'Curvar-se, ajoelhar-se ou dobrar-se.'),
+            ('g', 'Andar mais de 1 quilômetro.'),
+            ('h', 'Andar vários quarteirões.'),
+            ('i', 'Andar um quarteirão.'),
+            ('j', 'Tomar banho ou vestir-se.')
+          ] %}
+          {% for key, label in q3_items %}
+          <tr>
+            <td>{{ loop.index }}) {{ label }}</td>
+            <td class="center"><input type="radio" name="q3{{ key }}" value="1"></td>
+            <td class="center"><input type="radio" name="q3{{ key }}" value="2"></td>
+            <td class="center"><input type="radio" name="q3{{ key }}" value="3"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>4. Problemas com trabalho por saúde física (últimas 4 semanas)</h2>
+    </div>
+    <div class="card-body table-wrap">
+      <table class="q-table">
+        <thead>
+          <tr><th></th><th>Sim</th><th>Não</th></tr>
+        </thead>
+        <tbody>
+          {% set q4_items = [
+            ('a', 'Diminuiu a quantidade de tempo que se dedicava ao trabalho ou outras atividades?'),
+            ('b', 'Realizou menos tarefas do que gostaria?'),
+            ('c', 'Esteve limitado no tipo de trabalho ou outras atividades?'),
+            ('d', 'Teve dificuldade de fazer o trabalho (necessitou de esforço extra)?')
+          ] %}
+          {% for key, label in q4_items %}
+          <tr>
+            <td>{{ loop.index }}) {{ label }}</td>
+            <td class="center"><input type="radio" name="q4{{ key }}" value="1"></td>
+            <td class="center"><input type="radio" name="q4{{ key }}" value="2"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>5. Problemas com trabalho por problemas emocionais (últimas 4 semanas)</h2>
+    </div>
+    <div class="card-body table-wrap">
+      <table class="q-table">
+        <thead>
+          <tr><th></th><th>Sim</th><th>Não</th></tr>
+        </thead>
+        <tbody>
+          {% set q5_items = [
+            ('a', 'Diminuiu a quantidade de tempo dedicada ao trabalho ou outras atividades?'),
+            ('b', 'Realizou menos tarefas do que gostaria?'),
+            ('c', 'Não realizou as atividades com tanto cuidado como geralmente faz?')
+          ] %}
+          {% for key, label in q5_items %}
+          <tr>
+            <td>{{ loop.index }}) {{ label }}</td>
+            <td class="center"><input type="radio" name="q5{{ key }}" value="1"></td>
+            <td class="center"><input type="radio" name="q5{{ key }}" value="2"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>6. Interferência nas atividades sociais (últimas 4 semanas)</h2>
+      <p>Sua saúde física ou problemas emocionais interferiram nas atividades com família, amigos ou grupo?</p>
+    </div>
+    <div class="card-body">
+      <div class="radio-row">
+        {% for v, label in [(1,'De forma nenhuma'),(2,'Ligeiramente'),(3,'Moderadamente'),(4,'Bastante'),(5,'Extremamente')] %}
+        <label class="radio-card">
+          <input type="radio" name="q6" value="{{ v }}">
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>7. Dor no corpo (últimas 4 semanas)</h2>
+      <p>Quanta dor no corpo você teve durante as últimas 4 semanas?</p>
+    </div>
+    <div class="card-body">
+      <div class="radio-row">
+        {% for v, label in [(1,'Nenhuma'),(2,'Muito leve'),(3,'Leve'),(4,'Moderada'),(5,'Grave'),(6,'Muito grave')] %}
+        <label class="radio-card">
+          <input type="radio" name="q7" value="{{ v }}">
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>8. Interferência da dor no trabalho (últimas 4 semanas)</h2>
+      <p>Quanto a dor interferiu com seu trabalho normal (incluindo trabalho doméstico)?</p>
+    </div>
+    <div class="card-body">
+      <div class="radio-row">
+        {% for v, label in [(1,'De maneira alguma'),(2,'Um pouco'),(3,'Moderadamente'),(4,'Bastante'),(5,'Extremamente')] %}
+        <label class="radio-card">
+          <input type="radio" name="q8" value="{{ v }}">
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>9. Como você se sente (últimas 4 semanas)</h2>
+    </div>
+    <div class="card-body table-wrap">
+      <table class="q-table q9-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Todo o Tempo</th>
+            <th>A maior parte do tempo</th>
+            <th>Uma boa parte do tempo</th>
+            <th>Alguma parte do tempo</th>
+            <th>Uma pequena parte do tempo</th>
+            <th>Nunca</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set q9_items = [
+            ('a', 'Cheio de vigor, de vontade, de força?'),
+            ('b', 'Uma pessoa muito nervosa?'),
+            ('c', 'Tão deprimido que nada poderia animá-lo?'),
+            ('d', 'Calmo ou tranquilo?'),
+            ('e', 'Com muita energia?'),
+            ('f', 'Desanimado ou abatido?'),
+            ('g', 'Esgotado?'),
+            ('h', 'Uma pessoa feliz?'),
+            ('i', 'Cansado?')
+          ] %}
+          {% for key, label in q9_items %}
+          <tr>
+            <td>{{ loop.index }}) Quanto tempo você se sentiu {{ label }}</td>
+            {% for v in range(1, 7) %}
+            <td class="center"><input type="radio" name="q9{{ key }}" value="{{ v }}"></td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>10. Tempo com atividades sociais prejudicadas (últimas 4 semanas)</h2>
+      <p>Quanto de seu tempo a saúde física ou problemas emocionais interferiram nas atividades sociais (visitar amigos, parentes)?</p>
+    </div>
+    <div class="card-body">
+      <div class="radio-row">
+        {% for v, label in [(1,'Todo o Tempo'),(2,'A maior parte do tempo'),(3,'Alguma parte do tempo'),(4,'Uma pequena parte do tempo'),(5,'Nenhuma parte do tempo')] %}
+        <label class="radio-card">
+          <input type="radio" name="q10" value="{{ v }}">
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>11. Percepção geral de saúde</h2>
+      <p>O quanto verdadeiro ou falso é cada afirmação para você?</p>
+    </div>
+    <div class="card-body table-wrap">
+      <table class="q-table">
+        <thead>
+          <tr>
+            <th>Afirmação</th>
+            <th>Definitivamente verdadeiro</th>
+            <th>A maioria das vezes verdadeiro</th>
+            <th>Não sei</th>
+            <th>A maioria das vezes falso</th>
+            <th>Definitivamente falso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set q11_items = [
+            ('a', 'Costumo adoecer um pouco mais facilmente que as outras pessoas.'),
+            ('b', 'Sou tão saudável quanto qualquer pessoa que conheço.'),
+            ('c', 'Acho que minha saúde vai piorar.'),
+            ('d', 'Minha saúde é excelente.')
+          ] %}
+          {% for key, label in q11_items %}
+          <tr>
+            <td>{{ loop.index }}) {{ label }}</td>
+            {% for v in range(1, 6) %}
+            <td class="center"><input type="radio" name="q11{{ key }}" value="{{ v }}"></td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="reset" class="btn btn-secondary" onclick="resetProgress()">Limpar</button>
+    <button type="submit" class="btn btn-primary">Calcular e Salvar</button>
+  </div>
+
+</form>
+
+<script>
+  const form = document.getElementById('sf36Form');
+  const radios = Array.from(form.querySelectorAll('input[type="radio"]'));
+  const names = new Set(radios.map(r => r.name));
+  const total = names.size;
+
+  function updateProgress() {
+    const answered = [...names].filter(n => form.querySelector(`input[name="${n}"]:checked`)).length;
+    const pct = Math.round(answered / total * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${answered} de ${total} itens respondidos`;
+  }
+
+  radios.forEach(r => r.addEventListener('change', updateProgress));
+
+  function resetProgress() {
+    setTimeout(updateProgress, 0);
+  }
+</script>
+{% endblock %}

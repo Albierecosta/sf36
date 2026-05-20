@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Resultado — {{ row['patient_name'] }}{% endblock %}
+
+{% block content %}
+<div class="page-header result-header">
+  <div>
+    <h1>{{ row['patient_name'] }}</h1>
+    <p class="subtitle">
+      {% if row['patient_code'] %}Prontuário: {{ row['patient_code'] }} &nbsp;·&nbsp;{% endif %}
+      Avaliação: {{ row['assessment_date'] }}
+    </p>
+    {% if row['notes'] %}<p class="notes-text">{{ row['notes'] }}</p>{% endif %}
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('pacientes') }}" class="btn btn-secondary">← Pacientes</a>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Nova Avaliação</a>
+    <button onclick="window.print()" class="btn btn-secondary">Imprimir</button>
+  </div>
+</div>
+
+<!-- Domain scores -->
+<div class="card">
+  <div class="card-header">
+    <h2>Escores por Domínio</h2>
+    <p>Escala de 0 a 100 — 0 = pior estado · 100 = melhor estado de saúde</p>
+  </div>
+  <div class="card-body">
+    <div class="domains-grid">
+      {% for key, info in domains.items() %}
+      {% set s = info['score'] | int %}
+      {% if s >= 67 %}{% set cls = 'high' %}{% set badge = 'Bom' %}
+      {% elif s >= 34 %}{% set cls = 'medium' %}{% set badge = 'Regular' %}
+      {% else %}{% set cls = 'low' %}{% set badge = 'Ruim' %}{% endif %}
+      <div class="domain-card domain-{{ cls }}">
+        <div class="domain-name">{{ info['label'] }}</div>
+        <div class="domain-score">{{ "%.1f"|format(info['score']) }}</div>
+        <div class="domain-bar-bg">
+          <div class="domain-bar-fill" style="width: {{ info['score'] }}%"></div>
+        </div>
+        <div class="domain-badge badge-{{ cls }}">{{ badge }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Q2 comparison -->
+{% set q2_labels = {1:'Muito Melhor', 2:'Um Pouco Melhor', 3:'Quase a Mesma', 4:'Um Pouco Pior', 5:'Muito Pior'} %}
+<div class="card">
+  <div class="card-header">
+    <h2>Saúde comparada ao ano anterior (Q2)</h2>
+  </div>
+  <div class="card-body">
+    <p><strong>{{ q2_labels[row['q2']] }}</strong></p>
+  </div>
+</div>
+
+<!-- Raw responses summary -->
+<div class="card no-print">
+  <div class="card-header collapsible" onclick="toggleRaw()">
+    <h2>Respostas brutas <span class="toggle-hint" id="rawToggle">▼ Expandir</span></h2>
+  </div>
+  <div class="card-body" id="rawBody" style="display:none">
+    <div class="raw-grid">
+      <div><strong>Q1</strong> Saúde geral: {{ row['q1'] }}</div>
+      <div><strong>Q2</strong> Comparação ao ano anterior: {{ row['q2'] }}</div>
+      <div><strong>Q3</strong> Cap. funcional:
+        {% for x in 'abcdefghij' %}{{ x.upper() }}={{ row['q3'~x] }} {% endfor %}
+      </div>
+      <div><strong>Q4</strong> Lim. física:
+        {% for x in 'abcd' %}{{ x.upper() }}={{ row['q4'~x] }} {% endfor %}
+      </div>
+      <div><strong>Q5</strong> Lim. emocional:
+        {% for x in 'abc' %}{{ x.upper() }}={{ row['q5'~x] }} {% endfor %}
+      </div>
+      <div><strong>Q6</strong> Aspect. sociais: {{ row['q6'] }}</div>
+      <div><strong>Q7</strong> Dor: {{ row['q7'] }}</div>
+      <div><strong>Q8</strong> Dor/trabalho: {{ row['q8'] }}</div>
+      <div><strong>Q9</strong> Sentimentos:
+        {% for x in 'abcdefghi' %}{{ x.upper() }}={{ row['q9'~x] }} {% endfor %}
+      </div>
+      <div><strong>Q10</strong> Social/tempo: {{ row['q10'] }}</div>
+      <div><strong>Q11</strong> Percepção saúde:
+        {% for x in 'abcd' %}{{ x.upper() }}={{ row['q11'~x] }} {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Danger zone -->
+<div class="card card-danger no-print">
+  <div class="card-header">
+    <h2>Zona de perigo</h2>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('excluir', id=row['id']) }}"
+          onsubmit="return confirm('Tem certeza que deseja excluir esta avaliação? Esta ação não pode ser desfeita.')">
+      <button type="submit" class="btn btn-danger">Excluir avaliação</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function toggleRaw() {
+    const body = document.getElementById('rawBody');
+    const hint = document.getElementById('rawToggle');
+    if (body.style.display === 'none') {
+      body.style.display = 'block';
+      hint.textContent = '▲ Recolher';
+    } else {
+      body.style.display = 'none';
+      hint.textContent = '▼ Expandir';
+    }
+  }
+</script>
+{% endblock %}

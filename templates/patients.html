@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Pacientes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Pacientes</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">+ Nova Avaliação</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('pacientes') }}" class="search-form">
+      <input type="text" name="q" value="{{ search }}" placeholder="Buscar por nome ou prontuário…" class="search-input">
+      <button type="submit" class="btn btn-primary">Buscar</button>
+      {% if search %}<a href="{{ url_for('pacientes') }}" class="btn btn-secondary">Limpar</a>{% endif %}
+    </form>
+  </div>
+</div>
+
+{% if rows %}
+<div class="card">
+  <div class="card-body table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Prontuário</th>
+          <th>Data</th>
+          <th>Cap. Func.</th>
+          <th>Dor</th>
+          <th>Vitalidade</th>
+          <th>Saúde Mental</th>
+          <th>Asp. Sociais</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td><strong>{{ row['patient_name'] }}</strong></td>
+          <td>{{ row['patient_code'] or '—' }}</td>
+          <td>{{ row['assessment_date'] }}</td>
+          {% for key in ['capacidade_funcional','dor','vitalidade','saude_mental','aspectos_sociais'] %}
+          {% set s = row[key] %}
+          {% if s >= 67 %}{% set cls = 'score-high' %}
+          {% elif s >= 34 %}{% set cls = 'score-med' %}
+          {% else %}{% set cls = 'score-low' %}{% endif %}
+          <td class="{{ cls }}">{{ "%.0f"|format(s) }}</td>
+          {% endfor %}
+          <td><a href="{{ url_for('resultado', id=row['id']) }}" class="btn btn-sm">Ver</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% elif search %}
+<div class="card">
+  <div class="card-body">
+    <p class="empty-state">Nenhum paciente encontrado para "<strong>{{ search }}</strong>".</p>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body">
+    <p class="empty-state">Nenhuma avaliação registrada ainda. <a href="{{ url_for('index') }}">Adicione a primeira.</a></p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
