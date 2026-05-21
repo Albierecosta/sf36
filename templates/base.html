@@ -11,60 +11,63 @@
 <header class="site-header">
   <div class="header-inner">
     <a href="{{ url_for('index') }}" class="logo">SF-36</a>
-    <nav>
-      {% if not current_user or current_user.role != 'admin' %}
-      <a href="{{ url_for('index') }}"
-         class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Nova Avaliação</a>
-      <a href="{{ url_for('pacientes') }}"
-         class="nav-link {% if request.endpoint == 'pacientes' %}active{% endif %}">Prontuários</a>
-      {% endif %}
-
-      {% if current_user %}
-        {% if current_user.role == 'admin' %}
-          {# Admin master: acesso total #}
-          <a href="{{ url_for('admin_grupos') }}"
-             class="nav-link {% if request.endpoint in ['admin_grupos','admin_grupo_detail'] %}active{% endif %}">Grupos</a>
-          <a href="{{ url_for('admin_usuarios') }}"
-             class="nav-link {% if request.endpoint == 'admin_usuarios' %}active{% endif %}">Usuários</a>
-        {% elif managed_groups %}
-          {# Admin de grupo: vê os grupos que gerencia #}
-          {% if managed_groups|length == 1 %}
-            <a href="{{ url_for('grupo_gerenciar', group_id=managed_groups[0]['id']) }}"
-               class="nav-link {% if request.endpoint == 'grupo_gerenciar' %}active{% endif %}">
-              Meu Grupo
-            </a>
-          {% else %}
-            {# Dropdown para múltiplos grupos gerenciados #}
-            <div class="nav-dropdown">
-              <button class="nav-link nav-dropdown-btn
-                {% if request.endpoint == 'grupo_gerenciar' %}active{% endif %}">
-                Meus Grupos ▾
-              </button>
-              <div class="nav-dropdown-menu">
-                {% for g in managed_groups %}
-                <a href="{{ url_for('grupo_gerenciar', group_id=g['id']) }}" class="nav-dropdown-item">
-                  {{ g['name'] }}
-                </a>
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
-        {% endif %}
-      {% endif %}
-    </nav>
 
     {% if current_user %}
-    <div class="nav-user">
-      <span class="nav-user-name">{{ current_user.name }}</span>
-      {% if current_user.role == 'admin' %}
-        <span class="role-badge role-admin" style="font-size:.7rem">Master</span>
-      {% elif managed_groups %}
-        <span class="role-badge role-group-admin" style="font-size:.7rem">Admin</span>
-      {% endif %}
-      <a href="{{ url_for('alterar_senha') }}" class="nav-link nav-logout" title="Alterar senha">🔑</a>
-      <a href="{{ url_for('logout') }}" class="nav-link nav-logout">Sair</a>
-    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menu">
+      <span></span><span></span><span></span>
+    </button>
     {% endif %}
+
+    <div class="nav-collapse" id="navCollapse">
+      <nav>
+        {% if not current_user or current_user.role != 'admin' %}
+        <a href="{{ url_for('index') }}"
+           class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Nova Avaliação</a>
+        <a href="{{ url_for('pacientes') }}"
+           class="nav-link {% if request.endpoint == 'pacientes' %}active{% endif %}">Prontuários</a>
+        {% endif %}
+
+        {% if current_user %}
+          {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_grupos') }}"
+               class="nav-link {% if request.endpoint in ['admin_grupos','admin_grupo_detail'] %}active{% endif %}">Grupos</a>
+            <a href="{{ url_for('admin_usuarios') }}"
+               class="nav-link {% if request.endpoint == 'admin_usuarios' %}active{% endif %}">Usuários</a>
+          {% elif managed_groups %}
+            {% if managed_groups|length == 1 %}
+              <a href="{{ url_for('grupo_gerenciar', group_id=managed_groups[0]['id']) }}"
+                 class="nav-link {% if request.endpoint == 'grupo_gerenciar' %}active{% endif %}">Meu Grupo</a>
+            {% else %}
+              <div class="nav-dropdown">
+                <button class="nav-link nav-dropdown-btn {% if request.endpoint == 'grupo_gerenciar' %}active{% endif %}">
+                  Meus Grupos ▾
+                </button>
+                <div class="nav-dropdown-menu">
+                  {% for g in managed_groups %}
+                  <a href="{{ url_for('grupo_gerenciar', group_id=g['id']) }}" class="nav-dropdown-item">
+                    {{ g['name'] }}
+                  </a>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </nav>
+
+      {% if current_user %}
+      <div class="nav-user">
+        <span class="nav-user-name">{{ current_user.name }}</span>
+        {% if current_user.role == 'admin' %}
+          <span class="role-badge role-admin" style="font-size:.7rem">Master</span>
+        {% elif managed_groups %}
+          <span class="role-badge role-group-admin" style="font-size:.7rem">Admin</span>
+        {% endif %}
+        <a href="{{ url_for('alterar_senha') }}" class="nav-link nav-logout" title="Alterar senha">🔑</a>
+        <a href="{{ url_for('logout') }}" class="nav-link nav-logout">Sair</a>
+      </div>
+      {% endif %}
+    </div>
   </div>
 </header>
 
@@ -81,6 +84,18 @@
 <footer class="site-footer">
   <p>SF-36 — Versão Brasileira do Questionário de Qualidade de Vida</p>
 </footer>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const collapse = document.getElementById('navCollapse');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      const open = collapse.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+    });
+  }
+</script>
 
 </body>
 </html>
