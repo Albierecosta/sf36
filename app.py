@@ -124,8 +124,8 @@ def init_db():
         """)
 
         # Default admin master on first run
-        cur.execute("SELECT COUNT(*) FROM users")
-        if cur.fetchone()[0] == 0:
+        cur.execute("SELECT COUNT(*) as cnt FROM users")
+        if cur.fetchone()["cnt"] == 0:
             cur.execute(
                 f"INSERT INTO users (username, password_hash, name, role) VALUES ({PH},{PH},{PH},{PH})",
                 ("admin", generate_password_hash("admin123"), "Administrador", "admin"),
@@ -747,8 +747,8 @@ def admin_grupo_detail(group_id):
         )
         members = cur.fetchall()
 
-        cur.execute(f"SELECT COUNT(*) FROM assessments WHERE group_id = {PH}", (group_id,))
-        assessment_count = cur.fetchone()[0]
+        cur.execute(f"SELECT COUNT(*) as cnt FROM assessments WHERE group_id = {PH}", (group_id,))
+        assessment_count = cur.fetchone()["cnt"]
 
     return render_template(
         "admin/grupo_detail.html",
@@ -786,7 +786,6 @@ def grupo_gerenciar(group_id):
                             (username, generate_password_hash(DEFAULT_PASSWORD), name),
                         )
                         if USE_PG:
-                            new_user_id = cur.fetchone()["id"] if False else None
                             cur.execute(f"SELECT id FROM users WHERE username = {PH}", (username,))
                             new_user_id = cur.fetchone()["id"]
                         else:
@@ -865,8 +864,8 @@ def grupo_gerenciar(group_id):
             cur.execute("SELECT * FROM users WHERE role = 'student' ORDER BY name")
         non_members = cur.fetchall()
 
-        cur.execute(f"SELECT COUNT(*) FROM assessments WHERE group_id = {PH}", (group_id,))
-        assessment_count = cur.fetchone()[0]
+        cur.execute(f"SELECT COUNT(*) as cnt FROM assessments WHERE group_id = {PH}", (group_id,))
+        assessment_count = cur.fetchone()["cnt"]
 
     return render_template(
         "grupo_gerenciar.html",
