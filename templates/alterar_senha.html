@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Senha — SF-36</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">SF-36</div>
+
+    {% if session.get('must_change_password') %}
+    <div class="alert alert-info" style="margin-bottom:16px">
+      Este é seu primeiro acesso. Crie uma senha pessoal para continuar.
+    </div>
+    {% else %}
+    <p class="login-subtitle">Alterar senha</p>
+    {% endif %}
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('alterar_senha') }}" class="login-form">
+      <div class="field">
+        <label for="nova_senha">Nova senha</label>
+        <input type="password" id="nova_senha" name="nova_senha" required autofocus
+               placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="confirma_senha">Confirmar nova senha</label>
+        <input type="password" id="confirma_senha" name="confirma_senha" required
+               placeholder="Repita a senha" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Salvar nova senha</button>
+    </form>
+
+    {% if not session.get('must_change_password') %}
+    <p style="text-align:center;margin-top:16px;font-size:.85rem">
+      <a href="{{ url_for('index') }}" style="color:var(--primary)">← Voltar</a>
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+</body>
+</html>

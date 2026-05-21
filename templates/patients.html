@@ -1,18 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Pacientes{% endblock %}
+{% block title %}Prontuários{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>Pacientes</h1>
-  <a href="{{ url_for('index') }}" class="btn btn-primary">+ Nova Avaliação</a>
+  <h1>Prontuários</h1>
+  <div class="header-actions">
+    <a href="{{ url_for('pacientes_exportar', fmt='csv', q=search, grupo=group_filter) }}"
+       class="btn btn-export" title="Exportar CSV para Excel">⬇ CSV</a>
+    <a href="{{ url_for('pacientes_exportar', fmt='pdf', q=search, grupo=group_filter) }}"
+       class="btn btn-export" title="Exportar PDF">⬇ PDF</a>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">+ Nova Avaliação</a>
+  </div>
 </div>
 
 <div class="card">
   <div class="card-body">
     <form method="GET" action="{{ url_for('pacientes') }}" class="search-form">
       <input type="text" name="q" value="{{ search }}" placeholder="Buscar por nome ou prontuário…" class="search-input">
+      {% if all_groups %}
+      <select name="grupo" class="select-input" style="min-width:180px">
+        <option value="">Todos os grupos</option>
+        {% for g in all_groups %}
+        <option value="{{ g['id'] }}" {% if group_filter == g['id']|string %}selected{% endif %}>{{ g['name'] }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
       <button type="submit" class="btn btn-primary">Buscar</button>
-      {% if search %}<a href="{{ url_for('pacientes') }}" class="btn btn-secondary">Limpar</a>{% endif %}
+      {% if search or group_filter %}<a href="{{ url_for('pacientes') }}" class="btn btn-secondary">Limpar</a>{% endif %}
     </form>
   </div>
 </div>
@@ -25,6 +39,7 @@
         <tr>
           <th>Paciente</th>
           <th>Prontuário</th>
+          <th>Grupo</th>
           <th>Data</th>
           <th>Cap. Func.</th>
           <th>Dor</th>
@@ -39,6 +54,11 @@
         <tr>
           <td><strong>{{ row['patient_name'] }}</strong></td>
           <td>{{ row['patient_code'] or '—' }}</td>
+          <td>
+            {% if row['group_name'] %}
+              <span class="group-tag">{{ row['group_name'] }}</span>
+            {% else %}—{% endif %}
+          </td>
           <td>{{ row['assessment_date'] }}</td>
           {% for key in ['capacidade_funcional','dor','vitalidade','saude_mental','aspectos_sociais'] %}
           {% set s = row[key] %}
@@ -54,10 +74,10 @@
     </table>
   </div>
 </div>
-{% elif search %}
+{% elif search or group_filter %}
 <div class="card">
   <div class="card-body">
-    <p class="empty-state">Nenhum paciente encontrado para "<strong>{{ search }}</strong>".</p>
+    <p class="empty-state">Nenhum resultado encontrado.</p>
   </div>
 </div>
 {% else %}

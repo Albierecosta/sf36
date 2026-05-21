@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Gerenciar — {{ group['name'] }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ group['name'] }}</h1>
+    <p class="subtitle">Gerencie os membros do seu grupo.</p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('pacientes') }}?grupo={{ group['id'] }}" class="btn btn-secondary">Prontuários do grupo</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <p class="stat-label">Membros</p>
+    <p class="stat-value">{{ members|length }}</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-label">Avaliações</p>
+    <p class="stat-value">{{ assessment_count }}</p>
+  </div>
+</div>
+
+<!-- Create new user -->
+<div class="card">
+  <div class="card-header">
+    <h2>Criar novo estudante</h2>
+    <p>O estudante recebe a senha padrão <strong>123456</strong> e deverá trocá-la no primeiro acesso.</p>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('grupo_gerenciar', group_id=group['id']) }}" class="admin-form">
+      <input type="hidden" name="action" value="create_user">
+      <div class="admin-grid">
+        <div class="field">
+          <label>Nome completo *</label>
+          <input type="text" name="name" required placeholder="Ex: Maria Souza">
+        </div>
+        <div class="field">
+          <label>Nome de usuário *</label>
+          <input type="text" name="username" required placeholder="Ex: maria.souza">
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <button type="submit" class="btn btn-primary">Criar e adicionar ao grupo</button>
+        <span class="note" style="margin:0">Senha padrão: <strong>123456</strong></span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Members -->
+<div class="card">
+  <div class="card-header">
+    <h2>Membros do grupo</h2>
+    <p>Estudantes com acesso ao prontuário deste grupo.</p>
+  </div>
+  <div class="card-body">
+    {% if members %}
+    <table class="data-table" style="margin-bottom:20px">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Usuário</th>
+          <th>Papel</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+        <tr>
+          <td><strong>{{ m['name'] }}</strong></td>
+          <td>{{ m['username'] }}</td>
+          <td>
+            {% if m['ug_role'] == 'admin' %}
+              <span class="role-badge role-group-admin">Admin do Grupo</span>
+            {% else %}
+              <span class="role-badge role-student">Estudante</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right">
+            {# Admin de grupo só pode remover membros comuns; master admin pode remover qualquer um #}
+            {% if m['ug_role'] != 'admin' or current_user.role == 'admin' %}
+            <form method="POST"
+                  action="{{ url_for('grupo_gerenciar', group_id=group['id']) }}"
+                  onsubmit="return confirm('Remover {{ m['name'] }} do grupo?')">
+              <input type="hidden" name="action" value="remove_member">
+              <input type="hidden" name="user_id" value="{{ m['id'] }}">
+              <button type="submit" class="btn-danger-sm">Remover</button>
+            </form>
+            {% else %}
+              <span style="font-size:.75rem;color:var(--gray-500)">Admin master</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state" style="margin-bottom:16px">Nenhum membro ainda. Adicione estudantes abaixo.</p>
+    {% endif %}
+
+    <!-- Adicionar membro -->
+    {% if non_members %}
+    <div class="add-member-section">
+      <h3 style="font-size:.9rem;font-weight:600;color:var(--gray-700);margin-bottom:8px">
+        Adicionar estudante ao grupo
+      </h3>
+      <form method="POST"
+            action="{{ url_for('grupo_gerenciar', group_id=group['id']) }}"
+            style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="hidden" name="action" value="add_member">
+        <select name="user_id" class="select-input" style="flex:1;min-width:200px">
+          {% for u in non_members %}
+          <option value="{{ u['id'] }}">{{ u['name'] }} ({{ u['username'] }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Adicionar</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="note">Todos os estudantes cadastrados já são membros deste grupo.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

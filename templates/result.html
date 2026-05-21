@@ -12,9 +12,12 @@
     {% if row['notes'] %}<p class="notes-text">{{ row['notes'] }}</p>{% endif %}
   </div>
   <div class="header-actions">
-    <a href="{{ url_for('pacientes') }}" class="btn btn-secondary">← Pacientes</a>
-    <a href="{{ url_for('index') }}" class="btn btn-primary">Nova Avaliação</a>
-    <button onclick="window.print()" class="btn btn-secondary">Imprimir</button>
+    <a href="{{ url_for('pacientes') }}" class="btn btn-secondary no-print">← Pacientes</a>
+    <a href="{{ url_for('index') }}" class="btn btn-primary no-print">Nova Avaliação</a>
+    <a href="{{ url_for('resultado_pdf', id=row['id']) }}" class="btn btn-export no-print" title="Baixar PDF">
+      ⬇ PDF
+    </a>
+    <button onclick="window.print()" class="btn btn-secondary no-print">🖨 Imprimir</button>
   </div>
 </div>
 

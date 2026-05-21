@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Usuários</h1>
+    <p class="subtitle">Visão geral de todos os usuários cadastrados.</p>
+  </div>
+  <a href="{{ url_for('admin_grupos') }}" class="btn btn-secondary">← Grupos</a>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Todos os usuários ({{ users|length }})</h2></div>
+  <div class="card-body table-wrap">
+    {% if users %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Usuário</th>
+          <th>Tipo</th>
+          <th>Cadastro</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u['name'] }}</strong></td>
+          <td>{{ u['username'] }}</td>
+          <td>
+            {% if u['role'] == 'admin' %}
+              <span class="role-badge role-admin">Admin Master</span>
+            {% else %}
+              <span class="role-badge role-student">Estudante/Admin Grupo</span>
+            {% endif %}
+          </td>
+          <td>{{ u['created_at'][:10] if u['created_at'] else '—' }}</td>
+          <td>
+            <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center">
+              <button class="btn btn-sm" onclick="toggleReset({{ u['id'] }})">Redefinir senha</button>
+              {% if u['id'] != current_user.id %}
+              <form method="POST" action="{{ url_for('admin_usuarios') }}"
+                    onsubmit="return confirm('Excluir usuário {{ u['username'] }}?')">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="user_id" value="{{ u['id'] }}">
+                <button type="submit" class="btn-danger-sm">Excluir</button>
+              </form>
+              {% endif %}
+            </div>
+            <div id="reset-{{ u['id'] }}" style="display:none;margin-top:8px">
+              <form method="POST" action="{{ url_for('admin_usuarios') }}" style="display:flex;gap:6px">
+                <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="user_id" value="{{ u['id'] }}">
+                <input type="password" name="new_password" placeholder="Nova senha"
+                       class="search-input" style="min-width:0;flex:1">
+                <button type="submit" class="btn btn-primary" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">Nenhum usuário cadastrado.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="background:var(--primary-light);border:1px solid #bfdbfe">
+  <div class="card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div>
+      <p style="font-weight:600;color:var(--primary)">Para criar usuários</p>
+      <p style="font-size:.875rem;color:var(--gray-600)">
+        Acesse o grupo desejado e crie o <strong>Admin do Grupo</strong>. O admin do grupo cria os estudantes.
+      </p>
+    </div>
+    <a href="{{ url_for('admin_grupos') }}" class="btn btn-primary" style="white-space:nowrap">Ir para Grupos</a>
+  </div>
+</div>
+
+<script>
+function toggleReset(id) {
+  const el = document.getElementById('reset-' + id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

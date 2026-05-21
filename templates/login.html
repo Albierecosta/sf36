@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — SF-36</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">SF-36</div>
+    <p class="login-subtitle">Qualidade de Vida</p>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}" class="login-form">
+      <div class="field">
+        <label for="username">Usuário</label>
+        <input type="text" id="username" name="username" required autofocus
+               placeholder="Nome de usuário" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Senha</label>
+        <input type="password" id="password" name="password" required
+               placeholder="Senha" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

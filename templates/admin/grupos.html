@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Grupos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Grupos</h1>
+    <p class="subtitle">Gerencie os grupos de estudantes.</p>
+  </div>
+  <a href="{{ url_for('admin_usuarios') }}" class="btn btn-secondary">Ver Usuários</a>
+</div>
+
+<!-- Create group form -->
+<div class="card">
+  <div class="card-header"><h2>Novo Grupo</h2></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin_grupos') }}" class="admin-form">
+      <div class="admin-grid">
+        <div class="field">
+          <label>Nome do grupo *</label>
+          <input type="text" name="name" required placeholder="Ex: Turma A — 2025">
+        </div>
+        <div class="field">
+          <label>Descrição</label>
+          <input type="text" name="description" placeholder="Opcional">
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <button type="submit" class="btn btn-primary">Criar Grupo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Groups list -->
+<div class="card">
+  <div class="card-header"><h2>Grupos cadastrados ({{ groups|length }})</h2></div>
+  <div class="card-body table-wrap">
+    {% if groups %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th>Membros</th>
+          <th>Criado em</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for g in groups %}
+        <tr>
+          <td><strong>{{ g['name'] }}</strong></td>
+          <td>{{ g['description'] or '—' }}</td>
+          <td>{{ g['member_count'] }}</td>
+          <td>{{ g['created_at'][:10] if g['created_at'] else '—' }}</td>
+          <td style="text-align:right">
+            <a href="{{ url_for('admin_grupo_detail', group_id=g['id']) }}" class="btn btn-sm">Gerenciar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">Nenhum grupo cadastrado. Crie o primeiro acima.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
